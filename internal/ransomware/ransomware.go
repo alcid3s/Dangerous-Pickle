@@ -68,6 +68,5 @@ func encrypt(fileName string, key []byte) error {
 		fmt.Println("Error writing to encrypted file", file.Name())
 		return err
 	}
-
 	return nil
 }
