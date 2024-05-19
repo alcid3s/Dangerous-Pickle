@@ -18,3 +18,5 @@
 *.bat
 secret
 bin
+.env
+*.key

