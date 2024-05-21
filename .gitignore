@@ -20,3 +20,4 @@ secret
 bin
 .env
 *.key
+victim_keys/
