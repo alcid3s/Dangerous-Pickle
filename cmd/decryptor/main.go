@@ -60,5 +60,6 @@ func main() {
 		return
 	}
 
+	fmt.Println("decryptkey: ", key)
 	decryptor.ExecuteDecrypt(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//songs"), key)
 }
